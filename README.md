@@ -119,13 +119,148 @@ sudo systemctl status apache2
 
 
 
+### 6. Instalar Apache en el balanceador 
+
+El objetivo de instalar Apache en el balanceador es que actúe como un proxy inverso. Consiste en actuar como un servidor intermediario que se coloca en la frontera de la red para recibir todas las peticiones que hacen los usuarios desde el exterior y encargarse de distribuirlas hacia los servidores internos reales.
+
+Los comandos a ejecutar son:
+```bash
+sudo apt update
+sudo apt install -y apache2
+sudo systemctl status apache2
+sudo a2enmod proxy proxy_http proxy_balancer lbmethod_byrequests
+```
+`sudo a2enmod proxy proxy_http proxy_balancer lbmethod_byrequests` --> consiste en activar los módulos necesarios en Apache para que pueda funcionar como un proxy inverso y repartir el tráfico de manera equilibrada entre los frontales.
+
+![Apache en balanceador](images/apache_balanceador.png)
+
+`sudo nano /etc/apache2/sites-available/000-default.conf` 
+Hay que editar este fichero porque de forma predeterminada, Apache viene configurado para ser un servidor web simple (muestra una página de bienvenida local). Al editarlo, le decimos que deje de comportarse como una página web normal y corriente, y que se convierta en un proxy inverso (un repartidor de tráfico).
+
+![Editar fichero para hacer proxy inverso](images/editar_fichero.png)
+
+Lo que se dice en el fichero es que Apache tiene que dejar de servir páginas web propias y se convierta en un repartidor de tráfico: intercepta las peticiones que recibe y las distribuye de forma equitativa entre tus dos servidores frontales (192.168.56.11 y 192.168.56.12).
+
+`sudo apache2ctl configtest`--> verifica que no haya errores en el archivo.
+`sudo systemctl restart apache2`--> reinicio apache
+`exit`--> salir del balanceador
+
+![Verificación y reinicio del balanceador](images/verificacion_sintaxis.png)
 
 
 
+#### Verificar que el balanceador funciona correctamente. 
+
+Para comprobarlo, abro el navegador web y escribo la IP del balanceador: `http://192.168.56.10`
+
+![Verificación por navegador](images/verif_balanceador.png)
+
+Como no pueod ver si estoy en el frontal1 o frontal2, voy a editar el index.html del cada uno de los frontales para que me indique en cual estoy y así poder identificarlo mejor. 
+
+```bash
+vagrant ssh frontal1
+echo "<h1>Bienvenido a Frontal 1 (IP: 192.168.56.11)</h1>" | sudo tee /var/www/html/index.html
+```
+Ahora vuelvo al navegador y pruebo. 
+
+![Frontal2](images/httpfrontal2.png)
+![Frontal1](images/httpfrontal1.png)
+
+Como vemos en las imágenes adjuntadas funciona correctamente. 
 
 
+### 7. Configurar el servidor de la base de datos.
+ 
+ 1. 
+ ```bash
+vagrant ssh back-mysql
+sudo apt update
+sudo apt install -y mysql-server
+sudo systemctl mysql-server
+```
+
+2. Instalo el servicio de MySQL. 
+![Instlación mysql activa](images/mysql_back-mysql.png)
+
+3. Entro en la consola MySQL y creo la base de datos.
+   ```bash
+   sudo mysql
+   CREATE DATABASE iweb_db;
+   CREATE USER 'iweb_user'@'%' IDENTIFIED BY 'xxx';
+   GRANT ALL PRIVILEGES ON iweb_db.* TO 'iweb_user'@'%';
+   FLUSH PRIVILEGES;
+   EXIT;
+   ```
+   ![Creación usuario y database](images/database.png)
+   
+4. Permitir conexiones remotas.
+
+- Por defecto, MySQL solo acepta conexiones locales. Para que los servidores frontales puedan conectarse a esta base de datos a través de la red privada hay que editar el fichero `sudo nano /etc/mysql/mysql.conf.d/mysqld.cnf`
+
+- Modifico el comando bin-address por 0.0.0.0
+
+- Reinicio con `sudo systemctl restart mysql` y verifico que está activo `sudo systemctl status mysql`
+![Verificación activo mysql](images/estado_mysql.png)
+
+#### Compruebo la base de datos desde el frontal1 y frontal2
+`mysql -h 192.168.56.13 -u iweb_user -p`
+
+Me aparece un error indicando que no escuentra el servicio mysql y es debido a qu eno he instalado en los frontales el cliente MySQL, por lo que hago un `sudo apt update` y `sudo apt install -y mysql-client`
+Una vez descargado el paquete, pruebo de nuevo la conexión remota. 
+
+La conexión a la base de datos desde frontal1 ha sido un éxito. 
+![Conexión remota a la db desde frontal1](images/remoto_frontal1.png)
+
+Y desde frontal2, haciendo previamente la instalación de mysql-client.
+![Conexión remota desde frontal2 a db](images/db_frontal2.png)
 
 
+### 8. Comprobar toda la arquitectura de tres niveles. 
+El paso final es comprobar toda la arquitectura de esta práctica desde el navegador.
+Navegador --> Balanceador --> Servidores Frontales --> Base de Datos MySQL
+
+Antes de todo, para que me aparezca la conexión a una página a la base de datos, voy a crear un fichero `test.php` en los dos servidores frontales. 
+
+![test.php](images/test_php.png)
+Hay un pequeño error y aparece el código del fichero test.php porque no he instalado el servicio PHP en los frontales, entonces vamos a ello. 
+
+#### Instalar PHP en frontales.
+1. 
+   ```bash
+   vagrant ssh frontal1
+   sudo apt update && sudo apt install -y php libapache2-mod-php php-mysql
+   sudo a2enmod php*
+   sudo systemctl restart apache2
+   sudo systemctl status apache2
+   ```
+![Instalación PHP](images/php_frontal1.png)
+![Instalación PHP frontal2](images/php_frontal2.png)
+
+2. Verificar desde el navegador
+   Abro el navegador y escribo la direccion hacia la página: `http://192.168.56.10/test.php`
+
+Me sale un error porque no he instalado el paquete php-mysql para que puedan comunicarse ambos servicios en los frontales, asique vamos a ello `sudo apt install -y php-mysql`
+![Error PHP](images/error_php.png)
+
+El error sigue, por loq ue después de haber buscado información, voy a habilitar temporalmente la visualización de errores en el archivo de prueba para ver qué está fallando exactamente. Edito el archivo en los frontales:
+`sudo nano /var/www/html/test.php`
+```bash
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+```
+Sirve para forzar la visualización de los errores directamente en la pantalla de la página web.
+
+![Error PHP](images/error2_php.png)
+
+El error Access denied se debía a que el archivo test.php tenía configurada la contraseña antigua del usuario iweb_user. Se actualizó la contraseña en el archivo PHP `(sudo nano /var/www/html/test.php)` para que coincidiera con la almacenada en MySQL, solucionando así el problema de conexión. 
+Perfecto, ¡he solucionado el rpoblema!
+
+Ahora cuando escribimo en el navegador la dirección: `http://192.168.56.10/test.php` vemos la página que cree test.php y me indica si estoy en el frontal1 o frontal2. 
+![PHP frontal1](images/php_sol_frontal2.png)
+![PHP frontal1](images/php_sol_frontal1.png)
+
+
+  
 
 
 
