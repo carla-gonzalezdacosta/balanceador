@@ -34,7 +34,13 @@ Entro en el cmd desde ese directorio y creo el vagrantfile `vagrant init`
 
 ### 3. Editar el vagrantfile
 
-Abro el vagrantfile VSCode `code ./Vagrantfile` y edito el archivo para que me crea las 4 VMs junto a sus IPs , red y puertos correspondiente. 
+Abro el vagrantfile VSCode `code ./Vagrantfile` y edito el archivo para que me crea las 4 VMs junto a sus IPs , red y puertos correspondiente. ç
+
+**INCIDENCIA:**
+
+![Error vagrant up](images/error_vagrant_up.png)
+
+
 
 
 
