@@ -34,11 +34,44 @@ Entro en el cmd desde ese directorio y creo el vagrantfile `vagrant init`
 
 ### 3. Editar el vagrantfile
 
-Abro el vagrantfile VSCode `code ./Vagrantfile` y edito el archivo para que me crea las 4 VMs junto a sus IPs , red y puertos correspondiente. ç
+Abro el vagrantfile VSCode `code ./Vagrantfile` y edito el archivo para que me crea las 4 VMs junto a sus IPs , red y puertos correspondiente. 
+Ahora hago `vagrant up` para iniciar todas las VMs. 
 
 **INCIDENCIA:**
 
 ![Error vagrant up](images/error_vagrant_up.png)
+
+Al intentar ejecutar la práctica apareció un error en VirtualBox que impedía a Vagrant acceder correctamente a las máquinas virtuales. Tras revisar el problema e investigar información adicional, ya que esta situación no se explicaba en los apuntes, comprobé que estaba relacionado con la información almacenada en la carpeta .vagrant, que había quedado desactualizada al mover la práctica de ubicación. Eliminé dicha carpeta para que Vagrant generara una nueva configuración y pude continuar con el despliegue.
+
+**INCIDENCIA:**
+Ahora me aparece un nuevo error con la vm frontal1 debido a que durante el despliegue aparece un error de tiempo de espera agotado al intentar conectarme por SSH a la máquina frontal1. Aunque la máquina virtual arranca correctamente en VirtualBox, Vagrant no consigue establecer la conexión dentro del tiempo previsto, por lo que el proceso se detiene y tengo que revisar el estado de la máquina y la configuración de red para continuar con el despliegue.
+
+![Error frontal1](images/error_frontal1.png)
+
+Para solucionar el problema, primero accedo a la máquina virtual desde VirtualBox y compruebo que el sistema operativo ha terminado de arrancar correctamente, ya que aparece la pantalla de inicio de sesión de Ubuntu. A continuación inicio sesión con el usuario vagrant y verifico que el servicio SSH está funcionando mediante el comando `sudo systemctl status ssh`
+Al comprobar que el servicio se encuentra activo, vuelvo al host y reinicio la máquina gestionada por Vagrant con `vagrant reload frontal1`
+Se ha podido establecer correctamente la conexion por ssh y se ha terminado la configuración de la vm frontal1. 
+
+![Solucion error vm frontal1 conexion ssh](images/solucion_frontal1.png)
+
+
+
+
+Continuo con el inicio del resto de VMs: frontal2 y back-mysql. Para ello ejecuto: `vagrant up frontal2` y `vagrant up back-mysql`
+
+Al iniciar frontal2 `vagrant up frontal2` me ha salido el mismo error de conexión ssh. Por ello, inicié sesión directamnete desde la consola con el usuario vagrant y verifico que el servicio shh está activo.
+
+![estado activo ssh frontal2](images/activo_ssh_frontal2.png)
+
+Tras estas comprobaciones, confirmo que no existe un fallo real de funcionamiento, sino que el primer arranque de la máquina virtual requiere más tiempo del esperado y da la impresión de haberse quedado bloqueado cuando en realidad termina iniciándose correctamente. 
+
+Ahora paso al inicio de la última vm back-mysql. 
+Con esta vm, me pasa lo mismo, Vagrant no consigue conectarse inmediatamente por SSH porque Ubuntu tarda más de lo esperado en completar la inicialización del sistema. Aunque Vagrant muestra errores o avisos relacionados con la conexión, al comprobar el estado de las máquinas desde VirtualBox se verifica que terminan arrancando correctamente y que el servicio SSH está activo. 
+
+Verifico que las cuatro máquinas virtuales están listas:
+
+![VMs listas](images/vms_running.png)
+
 
 
 
