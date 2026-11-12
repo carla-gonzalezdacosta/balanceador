@@ -3,6 +3,19 @@
 ### Carla González Da Costa
 ### 12/11/2026
 
+### ÍNDICE:
+Introducción
+1. Arquitectura y despliegue de la insfraestructura.
+2. Crear carpeta y levantar VMs.
+3. Editar el vagrantfile e iniciar las VMs.
+4. Comprobar las IPs y conectividad entre las capas. 
+5. Instalar servidor web (Apache) en frontales.
+6. Instalar Apache en el balanceador
+7. Configurar el servidor de la base de datos.
+8. Comprobar toda la arquitectura de tres niveles. 
+
+
+
 ### Introducción:
 En esta práctica nos hemos propuesto montar una infraestructura web profesional y robusta, como si fuera un entornos real para que las páginas no se caigan y aguanten muchas visitas. Para conseguirlo, en lugar de meterlo todo en un único servidor, hemos dividido el trabajo en cuatro máquinas virtuales independientes que se comunican entre sí en una red privada.
 
@@ -258,6 +271,9 @@ Perfecto, ¡he solucionado el rpoblema!
 Ahora cuando escribimo en el navegador la dirección: `http://192.168.56.10/test.php` vemos la página que cree test.php y me indica si estoy en el frontal1 o frontal2. 
 ![PHP frontal1](images/php_sol_frontal2.png)
 ![PHP frontal1](images/php_sol_frontal1.png)
+
+Para finalizar la tarea de balanceador de carga, voy a adjuntar a continuación la screecash de toda la tarea. 
+[Vídeo funcionamiento de la tarea de balanceador de carga](images/video_balanceador.mp4)
 
 
   
