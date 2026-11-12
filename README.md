@@ -32,7 +32,7 @@ Para levantar todo este entorno sin tener que instalar los sistemas operativos u
 Voy a crear una carpeta llamada practica_balanceador, dentro de mi carpeta principal ASIR_2/WEB
 Entro en el cmd desde ese directorio y creo el vagrantfile `vagrant init`
 
-### 3. Editar el vagrantfile
+### 3. Editar el vagrantfile e iniciar las VMs.
 
 Abro el vagrantfile VSCode `code ./Vagrantfile` y edito el archivo para que me crea las 4 VMs junto a sus IPs , red y puertos correspondiente. 
 Ahora hago `vagrant up` para iniciar todas las VMs. 
@@ -71,6 +71,60 @@ Con esta vm, me pasa lo mismo, Vagrant no consigue conectarse inmediatamente por
 Verifico que las cuatro máquinas virtuales están listas:
 
 ![VMs listas](images/vms_running.png)
+
+
+
+### 4. Comprobar las IPs y conectividad entre las capas. 
+
+Entro por ssh en todas las VMs y con `ip a` compruebo sus IPs estáticas.
+
+![IP balanceador](images/ip_balanceador.png)
+
+![IP frontal1](images/ip_frontal1.png)
+
+**INCIDENCIA:**
+
+Tanto en la conexión de ssh de frontal2 y back-mysql como nombre de host me aparece ubuntu-jammy y no aparece la IP estática.
+
+![Incidencia ssh/ip a](images/incidencia_ip_a.png)
+
+He verificado el vagrantfile y está correcto. 
+
+Lo que he hecho con frontal2 y back-mysql es elimianrlas `vagrant destroy frontal2/back-mysql-f` y luego hacer un `vagrant up` y una vez terminado me he conectado por ssh a la vm `vagrant ssh frontal2/back-mysql` y ha funcionado correctamente.
+
+![Ip y hostname frontal2](images/ip_frontal2.png)
+
+![IP y hostname back-mysql](images/ip_back-mysql.png)
+
+
+Ahora paso a comprobar la conectividad entre los diferentes niveles:
+1. Pruebo la conectividad desde el balanceador a los frontales.
+   ![Ping desde balanceador a frontales](images/ping_balanceador.png)
+
+2. Hago ping desde los frontales a la vm de la base de datos.
+   ![Ping desde frontal1 a back-mysql](images/ping_frontal1.png)
+   ![Ping desde frontal2 a back-mysql](images/ping_frontal2.png)
+
+
+
+### 5. Instalar servidor web (Apache) en frontales.
+Me conecto por ssh al frontal1 y ejecuto estos comandos:
+```bash
+sudo apt update
+sudo apt install -y apache2
+sudo systemctl status apache2
+```
+![Apache en frontal1](images/apache_frontal1.png)
+![Apache en frontal2](images/apache_frontal2.png)
+
+
+
+
+
+
+
+
+
 
 
 
