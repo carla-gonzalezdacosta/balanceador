@@ -3,8 +3,8 @@
 ### Carla González Da Costa
 ### 12/11/2026
 
-### ÍNDICE:
-Introducción
+#### ÍNDICE:
+0. Introducción
 1. Arquitectura y despliegue de la insfraestructura.
 2. Crear carpeta y levantar VMs.
 3. Editar el vagrantfile e iniciar las VMs.
